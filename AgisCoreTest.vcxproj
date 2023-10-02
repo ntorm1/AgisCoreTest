@@ -38,33 +38,41 @@
   <ImportGroup Label="Shared" />
   <ImportGroup Label="PropertySheets" />
   <PropertyGroup Label="UserMacros" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+    <LibraryPath>$(oneTBBLibDir)\vc_mt;$(LibraryPath); $(SolutionDir)$(Platform)\$(Configuration);C:\Program Files\Python310;</LibraryPath>
+    <IncludePath>$(SolutionDir)AgisCore\external\include;$(SolutionDir)AgisCore\external\sol2\include;C:\Users\natha\luajit\src;$(oneTBBdpstdDir);$(IncludePath);C:\Program Files\Python310\include;</IncludePath>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+    <LibraryPath>$(oneTBBLibDir)\vc_mt;$(LibraryPath);C:\Program Files\Python310\libs</LibraryPath>
+    <IncludePath>$(SolutionDir)AgisCore\external\include;$(SolutionDir)AgisCore\external\sol2\include;C:\Users\natha\luajit\src;$(oneTBBdpstdDir);$(IncludePath);C:\Program Files\Python310\include;</IncludePath>
+  </PropertyGroup>
   <ItemGroup>
+    <ClInclude Include="helpers.h" />
     <ClInclude Include="pch.h" />
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="test_asset.cpp" />
     <ClCompile Include="pch.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Create</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Create</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Create</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Create</PrecompiledHeader>
     </ClCompile>
+    <ClCompile Include="test_broker.cpp" />
     <ClCompile Include="test_exchange.cpp" />
-    <ClCompile Include="test_hydra.cpp" />
-    <ClCompile Include="test_strategy.cpp" />
-  </ItemGroup>
-  <ItemGroup>
-    <ProjectReference Include="..\AgisCore\AgisCore.vcxproj">
-      <Project>{580f9cb3-a7ba-418f-abe1-5865b3071d6a}</Project>
-    </ProjectReference>
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />
   </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\Nexus\AgisCore\AgisCore.vcxproj">
+      <Project>{580f9cb3-a7ba-418f-abe1-5865b3071d6a}</Project>
+    </ProjectReference>
+  </ItemGroup>
   <ItemDefinitionGroup />
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
-    <Import Project="..\Nexus\packages\Microsoft.googletest.v140.windesktop.msvcstl.dyn.rt-dyn.1.8.1.7\build\native\Microsoft.googletest.v140.windesktop.msvcstl.dyn.rt-dyn.targets" Condition="Exists('..\Nexus\packages\Microsoft.googletest.v140.windesktop.msvcstl.dyn.rt-dyn.1.8.1.7\build\native\Microsoft.googletest.v140.windesktop.msvcstl.dyn.rt-dyn.targets')" />
+    <Import Project="..\Nexus\packages\Microsoft-CppUnitTestFramework.15.0.0\build\native\Microsoft-CppUnitTestFramework.targets" Condition="Exists('..\Nexus\packages\Microsoft-CppUnitTestFramework.15.0.0\build\native\Microsoft-CppUnitTestFramework.targets')" />
+    <Import Project="..\Nexus\packages\Microsoft.googletest.v140.windesktop.msvcstl.static.rt-dyn.1.8.1.7\build\native\Microsoft.googletest.v140.windesktop.msvcstl.static.rt-dyn.targets" Condition="Exists('..\Nexus\packages\Microsoft.googletest.v140.windesktop.msvcstl.static.rt-dyn.1.8.1.7\build\native\Microsoft.googletest.v140.windesktop.msvcstl.static.rt-dyn.targets')" />
   </ImportGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>
@@ -83,19 +91,24 @@
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <ClCompile>
-      <PrecompiledHeader>Use</PrecompiledHeader>
+      <PrecompiledHeader>NotUsing</PrecompiledHeader>
       <PrecompiledHeaderFile>pch.h</PrecompiledHeaderFile>
       <Optimization>Disabled</Optimization>
       <PreprocessorDefinitions>X64;_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <BasicRuntimeChecks>EnableFastChecks</BasicRuntimeChecks>
       <RuntimeLibrary>MultiThreadedDebugDLL</RuntimeLibrary>
       <WarningLevel>Level3</WarningLevel>
-      <AdditionalIncludeDirectories>C:\Users\natha\OneDrive\Desktop\C++\AgisCore;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
-      <LanguageStandard>stdcpp20</LanguageStandard>
+      <AdditionalIncludeDirectories>$(SolutionDir)AgisCore\include;%(AdditionalIncludeDirectories);C:\Program Files\Python310\include</AdditionalIncludeDirectories>
+      <LanguageStandard>stdcpplatest</LanguageStandard>
+      <EnableModules>true</EnableModules>
+      <BuildStlModules>true</BuildStlModules>
+      <AdditionalModuleDependencies>$(SolutionDir)AgisCore\$(Platform)\$(Configuration)\Broker.ixx.ifc;$(SolutionDir)AgisCore\$(Platform)\$(Configuration)\Broker.Dummy.ixx.ifc;$(SolutionDir)AgisCore\$(Platform)\$(Configuration)\Broker.Base.ixx.ifc;%(AdditionalModuleDependencies)</AdditionalModuleDependencies>
     </ClCompile>
     <Link>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <SubSystem>Console</SubSystem>
+      <AdditionalLibraryDirectories>$(SolutionDir)$(Platform)\$(Configuration);%(AdditionalLibraryDirectories);C:\Program Files\Python310\libs</AdditionalLibraryDirectories>
+      <AdditionalDependencies>$(SolutionDir)$(Platform)\$(Configuration)\AgisCore.lib;python310_d.lib;%(AdditionalDependencies);</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
@@ -122,20 +135,23 @@
       <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
       <WarningLevel>Level3</WarningLevel>
       <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
-      <AdditionalIncludeDirectories>C:\Users\natha\OneDrive\Desktop\C++\AgisCore;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir)AgisCore\src;%(AdditionalIncludeDirectories);C:\Program Files\Python310\include</AdditionalIncludeDirectories>
       <LanguageStandard>stdcpp20</LanguageStandard>
+      <AdditionalModuleDependencies>$(SolutionDir)AgisCore\$(Platform)\$(Configuration)\Broker.ixx.ifc;$(SolutionDir)AgisCore\$(Platform)\$(Configuration)\Broker.Base.ixx.ifc;$(SolutionDir)AgisCore\$(Platform)\$(Configuration)\Broker.Dummy.ixx.ifc</AdditionalModuleDependencies>
     </ClCompile>
     <Link>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <SubSystem>Console</SubSystem>
       <OptimizeReferences>true</OptimizeReferences>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
+      <AdditionalDependencies>$(SolutionDir)$(Platform)\$(Configuration)\AgisCore.lib;%(AdditionalDependencies);python310.lib</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <Target Name="EnsureNuGetPackageBuildImports" BeforeTargets="PrepareForBuild">
     <PropertyGroup>
       <ErrorText>This project references NuGet package(s) that are missing on this computer. Use NuGet Package Restore to download them.  For more information, see http://go.microsoft.com/fwlink/?LinkID=322105. The missing file is {0}.</ErrorText>
     </PropertyGroup>
-    <Error Condition="!Exists('..\Nexus\packages\Microsoft.googletest.v140.windesktop.msvcstl.dyn.rt-dyn.1.8.1.7\build\native\Microsoft.googletest.v140.windesktop.msvcstl.dyn.rt-dyn.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\Nexus\packages\Microsoft.googletest.v140.windesktop.msvcstl.dyn.rt-dyn.1.8.1.7\build\native\Microsoft.googletest.v140.windesktop.msvcstl.dyn.rt-dyn.targets'))" />
+    <Error Condition="!Exists('..\Nexus\packages\Microsoft-CppUnitTestFramework.15.0.0\build\native\Microsoft-CppUnitTestFramework.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\Nexus\packages\Microsoft-CppUnitTestFramework.15.0.0\build\native\Microsoft-CppUnitTestFramework.targets'))" />
+    <Error Condition="!Exists('..\Nexus\packages\Microsoft.googletest.v140.windesktop.msvcstl.static.rt-dyn.1.8.1.7\build\native\Microsoft.googletest.v140.windesktop.msvcstl.static.rt-dyn.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\Nexus\packages\Microsoft.googletest.v140.windesktop.msvcstl.static.rt-dyn.1.8.1.7\build\native\Microsoft.googletest.v140.windesktop.msvcstl.static.rt-dyn.targets'))" />
   </Target>
 </Project>

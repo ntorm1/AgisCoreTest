@@ -1,7 +1,12 @@
 #include "pch.h"
 
-#include "Hydra.h"
+#include "helpers.h"
 #include "AgisLuaStrategy.h"
+
+#include "Broker/Broker.Base.h"
+#include "Asset/Asset.Core.h"
+
+using namespace Agis;
 
 namespace LuaTest {
 
@@ -13,6 +18,7 @@ namespace LuaTest {
 	std::string portfolio_id_1_h = "portfolio1";
 	std::string exchange_id_1_h = "exchange1";
 	std::string strategy_id_1_h = "test_strat";
+	std::string broker_id_1_h = "broker1";
 
 	constexpr long long t0 = 960181200000000000;
 	constexpr long long t1 = 960267600000000000;
@@ -32,21 +38,31 @@ protected:
 	void SetUp() override {
 		this->hydra = std::make_unique<Hydra>(0, true);
 		this->hydra->new_exchange(
+			AssetType::US_EQUITY,
 			exchange_id_1_h,
 			exchange1_path_h,
 			Frequency::Day1,
 			"%Y-%m-%d"
 		);
+		hydra->build();
+		hydra->new_broker(broker_id_1_h);
+		auto& exchanges = hydra->get_exchanges();
+		auto exchange = exchanges.get_exchange(exchange_id_1_h).value();
+		auto asset_indecies = exchange->get_asset_indices();
 
+		auto broker = hydra->get_broker(broker_id_1_h).value();
+		Agis::TradeableAsset t;
+		auto res = broker->load_tradeable_assets(&t, asset_indecies);
+		if (!res.has_value()) {
+			std::cout << res.error().what() << std::endl;
+		}
+
+		// create and register new portfolio
+		auto portfolio = hydra->new_portfolio(portfolio_id_1_h, cash);
 	}
 };
 
 TEST_F(SimpleLuaFixture, TestLuaStrategyBuild) {
-	hydra->new_portfolio(
-		portfolio_id_1_h,
-		cash
-	);
-	auto portfolio = this->hydra->get_portfolio(portfolio_id_1_h);
 	std::string script = R"(
 function test_strat_next(strategy)
 	-- Custom Lua implementation of next()
@@ -67,9 +83,9 @@ function test_strat_build(strategy)
 	exchange_node = create_exchange_node(exchange)
 	lambda_init = create_asset_lambda_read("CLOSE", 0)
 	lambda_prev = create_asset_lambda_read("CLOSE", -1)
-	lambda_opp = create_asset_lambda_opp(lambda_init, lambda_prev, "SUBTRACT")
+	lambda_opp = create_asset_lambda_opp(lambda_init, lambda_prev, AgisOpperationType.SUBTRACT)
 	lambda_div = create_asset_lambda_read("CLOSE", -1)
-	lambda_opp = create_asset_lambda_opp(lambda_opp, lambda_div, "DIVIDE")
+	lambda_opp = create_asset_lambda_opp(lambda_opp, lambda_div, AgisOpperationType.DIVIDE)
 	
 	-- build the exchange view logic
 	ev_opp = create_exchange_view_node(exchange_node, lambda_opp)
@@ -81,8 +97,11 @@ function test_strat_build(strategy)
 	strategy:set_allocation_node(strategy_alloc_node)
 end
 )";
+	auto portfolio = this->hydra->get_portfolio(portfolio_id_1_h);
+	auto broker = hydra->get_broker(broker_id_1_h).value();
 	auto strategy = std::make_unique<AgisLuaStrategy>(
 		portfolio,
+		broker,
 		strategy_id_1_h,
 		1,
 		script
@@ -91,7 +110,7 @@ end
 	hydra->register_strategy(std::move(strategy));
 	auto strategy_ref = hydra->__get_strategy(strategy_id_1_h);
 	auto res = hydra->build();
-	EXPECT_EQ(res.is_exception(), false);
+	EXPECT_EQ(res.has_value(), true);
 
 	// cast strat ref to lua strat
 	auto lua_strat = dynamic_cast<AgisLuaStrategy*>(strategy_ref);
@@ -107,7 +126,7 @@ end
 	auto id3 = hydra->get_exchanges().get_asset_index(asset_id_3_h);
 
 	hydra->__step();
-	
+
 	auto pos_count = portfolio->get_strategy_positions(strat->get_strategy_index());
 	EXPECT_EQ(pos_count.size(), 0);
 

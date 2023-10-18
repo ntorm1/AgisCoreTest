@@ -1,13 +1,23 @@
 #pragma once
 
+#define NS_CONST (long long) 1e9
 
-import Asset;
+#include "Asset/Asset.h"
 
 using namespace Agis;
 
 #include "Order.h"
-#include "Exchange.h"
+#include "Hydra.h"
+#include "Portfolio.h"
+#include "ExchangeMap.h"
 #include "Utils.h"
+
+#define CHECK_EXCEPT(res) \
+    do { \
+        if (!res.has_value()) { \
+            std::cout << res.error().what() << std::endl; \
+        } \
+    } while (false)
 
 namespace AgisTest {
 
@@ -18,6 +28,7 @@ namespace AgisTest {
 	{
 		auto exchanges = std::make_shared<ExchangeMap>();
 		exchanges->new_exchange(
+			AssetType::US_EQUITY,
 			exchange_id,
 			exchange_path,
 			Frequency::Day1,
